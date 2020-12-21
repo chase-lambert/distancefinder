@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Distance Finder
+{% endblock %}
+
+{% block main %}
+
+     <p> {{ ip }} </p>
+
+      <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Distance from Current Location</th>
+            </tr>
+        </thead>
+        <tbody>
+                {% for location in locations %}
+                <tr>
+                    <td> {{ location["location"] }}</td>
+                    <td> {{ location["distance"] }} miles</td>
+                </tr>
+                {% endfor %}
+
+        </tbody>
+    </table>
+{% endblock %}
