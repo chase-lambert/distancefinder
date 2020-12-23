@@ -1,4 +1,6 @@
+import json
 import os
+import requests
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
@@ -40,15 +42,38 @@ def index():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+
+        if not request.form.get("new_location"): 
+            current = request.form.get("location")
+            for d in destinations:
+                if d['location'] == current:
+                    current_destination = d
+
+            current_lat = current_destination["lat"]
+            current_long = current_destination["long"]
+
+            for location in locations:
+                lat = location["lat"]
+                long = location["long"]
+                distance = round(haversine(current_long, current_lat, long, lat))
+                distance = {"distance": distance}
+                location.update(distance)
+
+            return render_template(
+                "index.html",
+                locations=locations,
+                destinations=destinations,
+                current=current,
+            )
+
+        current = request.form.get("new_location")
+        search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
+        location_info = requests.get(search_string)
+        location_info = json.loads(location_info.text)[0]
+
+        current_lat = float(location_info["lat"])
+        current_long = float(location_info["lon"])
         
-        current = request.form.get("location")
-        for d in destinations:
-            if d['location'] == current:
-                current_destination = d
-
-        current_lat = current_destination["lat"]
-        current_long = current_destination["long"]
-
         for location in locations:
             lat = location["lat"]
             long = location["long"]
@@ -66,13 +91,6 @@ def index():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        # for location in locations:
-        #     lat = location["lat"]
-        #     long = location["long"]
-        #     distance = round(haversine(current_long, current_lat, long, lat))
-        #     distance = {"distance": distance}
-        #     location.update(distance)
-
         return render_template(
             "index.html",
             locations=locations,
