@@ -42,7 +42,7 @@ def index():
         
         location = request.form.get("location")
         for d in destinations:
-            if d['location'] = location
+            if d['location'] = location:
                 current_destination = d
 
         current_lat = current_destination["lat"]
