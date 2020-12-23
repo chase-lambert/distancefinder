@@ -69,7 +69,7 @@ def index():
 
         return render_template(
             "index.html",
-            locations=locations
+            locations=locations,
             destinations=destinations,
         )
 
