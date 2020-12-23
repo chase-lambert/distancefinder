@@ -5,8 +5,10 @@
 {% endblock %}
 
 {% block main %}
-
-     <form action="/index" method="post">
+     <h2>Current location: {{ current }}</h2>
+     <p></p>
+     <p>Change current location:</p>
+     <form action="/" method="post">
         <div class="form-group">
             <select autocomplete="off" autofocus class="form-control" name="location" placeholder="Current Location" type="text">
                 {% for destination in destinations %}
@@ -16,7 +18,7 @@
         </div>
         <button class="btn btn-primary" type="submit">Submit</button>
     </form>
-
+      <p></p>
       <table class="table table-striped">
         <thead>
             <tr>
