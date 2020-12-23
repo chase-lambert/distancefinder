@@ -60,12 +60,12 @@ def index():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        for location in locations:
-            lat = location["lat"]
-            long = location["long"]
-            distance = round(haversine(current_long, current_lat, long, lat))
-            distance = {"distance": distance}
-            location.update(distance)
+        # for location in locations:
+        #     lat = location["lat"]
+        #     long = location["long"]
+        #     distance = round(haversine(current_long, current_lat, long, lat))
+        #     distance = {"distance": distance}
+        #     location.update(distance)
 
         return render_template(
             "index.html",
