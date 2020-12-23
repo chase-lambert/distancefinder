@@ -1,8 +1,6 @@
 import json
-import requests
 import os
 
-from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from math import radians, cos, sin, asin, sqrt
@@ -10,7 +8,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required
+from helpers import apology
 
 # Configure application
 app = Flask(__name__)
@@ -33,21 +31,12 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///users.db")
-
 
 @app.route("/")
-@login_required
 def index():
-    id = session["user_id"]
+    locations = [{'location': 'Yigo, Guam', 'lat': 13.535204499999999, 'long': 144.89715694673106}, {'location': 'Medellin, Colombia', 'lat': 6.2443382, 'long': -75.573553}, {'location': 'Edinburgh, Scotland', 'lat': 55.9533456, 'long': -3.1883749}, {'location': 'King, NC', 'lat': 36.275245999999996, 'long': -80.36568613272892}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}, {'location': 'Dudley, NC', 'lat': 35.2673857, 'long': -78.0374891}, {'location': 'Fairfield, CA', 'lat': 38.2493581, 'long': -122.039966}]
 
-    ip = request.remote_addr
-
-    current_lat = 36.2807
-    current_long = -80.3592
-
-    locations = db.execute("SELECT * FROM locations WHERE id = :id", id=id)
+    destinations = [{'location': 'Fort Payne, Alabama', 'lat': 34.4442547, 'long': -85.7196893}, {'location': 'Hot Springs, Arkansas', 'lat': 34.5038393, 'long': -93.0552437}, {'location': 'Canyon, Texas', 'lat': 34.99253385, 'long': -101.92788331921604}, {'location': 'Pena Blanca, New Mexico', 'lat': 35.574754999999996, 'long': -106.33723818363845}, {'location': 'Williams, AZ', 'lat': 35.2503394, 'long': -112.1869481}, {'location': 'Springfield, Utah', 'lat': 37.1908427, 'long': -93.2932611}, {'location': 'Torrey, Utah', 'lat': 38.2997368, 'long': -111.4204705}, {'location': 'Moab, Utah', 'lat': 38.5738096, 'long': -109.5462146}, {'location': 'Ashton, Idaho', 'lat': 44.071581, 'long': -111.448288}, {'location': 'Browning, Montana', 'lat': 48.557743, 'long': -113.0172586}, {'location': 'Custer, South Dakota', 'lat': 43.6726477, 'long': -103.5101597}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}, {'location': 'King, NC', 'lat': 36.275245999999996, 'long': -80.36568613272892}]
 
     for location in locations:
         lat = location["lat"]
@@ -80,161 +69,6 @@ def haversine(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a))
     r = 3965
     return c * r
-
-
-@app.route("/add", methods=["GET", "POST"])
-@login_required
-def add():
-    """Add a location"""
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        id = session["user_id"]
-        location = request.form.get("location")
-
-        search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(
-            location
-        )
-        location_info = requests.get(search_string)
-        location_info = json.loads(location_info.text)[0]
-
-        lat = float(location_info["lat"])
-        long = float(location_info["lon"])
-
-        db.execute("INSERT INTO locations VALUES (?, ?, ?, ?)", id, location, lat, long)
-
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("add.html")
-
-
-@app.route("/delete", methods=["GET", "POST"])
-@login_required
-def delete():
-    """Delete a location"""
-
-    id = session["user_id"]
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        location = request.form.get("location")
-
-        db.execute(
-            "DELETE FROM locations WHERE id = :id AND location = :location",
-            id=id,
-            location=location,
-        )
-
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        locations = db.execute("SELECT location FROM locations WHERE id = :id", id=id)
-
-        return render_template("delete.html", locations=locations)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    """Log user in"""
-
-    # Forget any user_id
-    session.clear()
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return apology("must provide password", 403)
-
-        # Query database for username
-        rows = db.execute(
-            "SELECT * FROM users WHERE username = :username",
-            username=request.form.get("username"),
-        )
-
-        # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
-        ):
-            return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
-
-        # Redirect user to home page
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("login.html")
-
-
-@app.route("/logout")
-def logout():
-    """Log user out"""
-
-    # Forget any user_id
-    session.clear()
-
-    # Redirect user to login form
-    return redirect("/")
-
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """Register user"""
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-
-        # Ensure username is not already in use
-        users = db.execute("SELECT username FROM users")
-        for user in users:
-            if request.form.get("username") == user["username"]:
-                return apology("username already taken", 403)
-
-        # Ensure password was submitted
-        if not request.form.get("password"):
-            return apology("must provide password", 403)
-
-        # Ensure password confirmation was submitted
-        elif not request.form.get("confirmation"):
-            return apology("must provide confirmation of password", 403)
-
-        # Ensure password and confirmation match
-        elif not request.form.get("password") == request.form.get("confirmation"):
-            return apology("passwords do not match", 403)
-
-        # Hash password
-        hashed = generate_password_hash(
-            request.form.get("password"), method="pbkdf2:sha256", salt_length=8
-        )
-
-        # Insert Username and Password into database
-        db.execute(
-            "INSERT INTO users (username, hash) VALUES (?, ?)",
-            request.form.get("username"),
-            hashed,
-        )
-
-        return redirect("/")
-
-    else:
-        return render_template("register.html")
 
 
 def errorhandler(e):
