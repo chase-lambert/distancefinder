@@ -11,8 +11,8 @@
      <form action="/" method="post">
         <div class="form-group">
             <select autocomplete="off" autofocus class="form-control" name="location" placeholder="Current Location" type="text">
-                {% for destination in destinations %}
-                <option value="{{destination["location"]}}">{{destination["location"]}}</option>
+                {% for location in locations %}
+                <option value="{{location["location"]}}">{{location["location"]}}</option>
                 {% endfor %}
             </select>
         </div>
@@ -33,13 +33,22 @@
             </tr>
         </thead>
         <tbody>
-                {% for location in locations %}
+                {% for destination in destinations %}
                 <tr>
-                    <td> {{ location["location"] }}</td>
-                    <td> {{ location["distance"] }} miles</td>
+                    <td> {{ destination["location"] }}</td>
+                    <td> {{ destination["distance"] }} miles</td>
                 </tr>
                 {% endfor %}
 
         </tbody>
     </table>
+
+<!--    
+        <form action="/" method="post">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="destination" placeholder="Add new location" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Add</button>
+        </form>  
+-->
 {% endblock %}

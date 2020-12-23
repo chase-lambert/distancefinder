@@ -36,65 +36,109 @@ Session(app)
 @app.route("/", methods=["GET", "POST"])
 def index():
 
-    locations = [{'location': 'King, NC', 'lat': 36.2807, 'long': -80.3592}, {'location': 'Dudley, NC', 'lat': 35.2673857, 'long': -78.0374891}, {'location': 'Edinburgh, Scotland', 'lat': 55.9533456, 'long': -3.1883749}, {'location': 'Medellin, Colombia', 'lat': 6.2443382, 'long': -75.573553}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}, {'location': 'Fairfield, CA', 'lat': 38.2493581, 'long': -122.039966}, {'location': 'Yigo, Guam', 'lat': 13.535204499999999, 'long': 144.89715694673106}]
+    destinations = [{'location': 'King, NC', 'lat': 36.2807, 'long': -80.3592}, {'location': 'Dudley, NC', 'lat': 35.2673857, 'long': -78.0374891}, {'location': 'Edinburgh, Scotland', 'lat': 55.9533456, 'long': -3.1883749}, {'location': 'Medellin, Colombia', 'lat': 6.2443382, 'long': -75.573553}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}, {'location': 'Fairfield, CA', 'lat': 38.2493581, 'long': -122.039966}, {'location': 'Yigo, Guam', 'lat': 13.535204499999999, 'long': 144.89715694673106}]
 
-    destinations = [{'location': ""}, {'location': 'King, NC', 'lat': 36.1816, 'long': -80.1927}, {'location': 'Fort Payne, Alabama', 'lat': 34.4442547, 'long': -85.7196893}, {'location': 'Hot Springs, Arkansas', 'lat': 34.5038393, 'long': -93.0552437}, {'location': 'Canyon, Texas', 'lat': 34.99253385, 'long': -101.92788331921604}, {'location': 'Pena Blanca, New Mexico', 'lat': 35.574754999999996, 'long': -106.33723818363845}, {'location': 'Williams, AZ', 'lat': 35.2503394, 'long': -112.1869481}, {'location': 'Springfield, Utah', 'lat': 37.1908427, 'long': -93.2932611}, {'location': 'Torrey, Utah', 'lat': 38.2997368, 'long': -111.4204705}, {'location': 'Moab, Utah', 'lat': 38.5738096, 'long': -109.5462146}, {'location': 'Ashton, Idaho', 'lat': 44.071581, 'long': -111.448288}, {'location': 'Browning, Montana', 'lat': 48.557743, 'long': -113.0172586}, {'location': 'Custer, South Dakota', 'lat': 43.6726477, 'long': -103.5101597}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}]
+    locations = [{'location': ""}, {'location': 'King, NC', 'lat': 36.1816, 'long': -80.1927}, {'location': 'Fort Payne, Alabama', 'lat': 34.4442547, 'long': -85.7196893}, {'location': 'Hot Springs, Arkansas', 'lat': 34.5038393, 'long': -93.0552437}, {'location': 'Canyon, Texas', 'lat': 34.99253385, 'long': -101.92788331921604}, {'location': 'Pena Blanca, New Mexico', 'lat': 35.574754999999996, 'long': -106.33723818363845}, {'location': 'Williams, AZ', 'lat': 35.2503394, 'long': -112.1869481}, {'location': 'Springfield, Utah', 'lat': 37.1908427, 'long': -93.2932611}, {'location': 'Torrey, Utah', 'lat': 38.2997368, 'long': -111.4204705}, {'location': 'Moab, Utah', 'lat': 38.5738096, 'long': -109.5462146}, {'location': 'Ashton, Idaho', 'lat': 44.071581, 'long': -111.448288}, {'location': 'Browning, Montana', 'lat': 48.557743, 'long': -113.0172586}, {'location': 'Custer, South Dakota', 'lat': 43.6726477, 'long': -103.5101597}, {'location': 'Redgranite, WI', 'lat': 44.0419238, 'long': -89.0984504}, {'location': 'Marana, AZ', 'lat': 32.4446988, 'long': -111.2157091}]
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        if not request.form.get("new_location"): 
+        current = locations[1]
+
+        if request.form.get("location"):
             current = request.form.get("location")
-            for d in destinations:
-                if d['location'] == current:
-                    current_destination = d
+
+            for location in locations:
+                if location["location"] == current:
+                    current_destination = location
 
             current_lat = current_destination["lat"]
             current_long = current_destination["long"]
 
-            for location in locations:
-                lat = location["lat"]
-                long = location["long"]
+            for destination in destinations:
+                lat = destination["lat"]
+                long = destination["long"]
                 distance = round(haversine(current_long, current_lat, long, lat))
                 distance = {"distance": distance}
-                location.update(distance)
+                destination.update(distance)
 
             return render_template(
                 "index.html",
-                locations=locations,
-                destinations=destinations,
                 current=current,
+                destinations=destinations,
+                locations=locations,
             )
 
-        current = request.form.get("new_location")
-        search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
-        location_info = requests.get(search_string)
-        location_info = json.loads(location_info.text)[0]
+        if request.form.get("new_location"):
+            current = request.form.get("new_location")
+            search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
+            location_info = requests.get(search_string)
+            location_info = json.loads(location_info.text)[0]
 
-        current_lat = float(location_info["lat"])
-        current_long = float(location_info["lon"])
-        
-        for location in locations:
-            lat = location["lat"]
-            long = location["long"]
-            distance = round(haversine(current_long, current_lat, long, lat))
-            distance = {"distance": distance}
-            location.update(distance)
+            current_lat = float(location_info["lat"])
+            current_long = float(location_info["lon"])
+            
+            for destination in destinations:
+                lat = destination["lat"]
+                long = destination["long"]
+                distance = round(haversine(current_long, current_lat, long, lat))
+                distance = {"distance": distance}
+                destination.update(distance)
 
-        return render_template(
-            "index.html",
-            locations=locations,
-            destinations=destinations,
-            current=current,
-        )
+            return render_template(
+                "index.html",
+                current=current,
+                destinations=destinations,
+                locations=locations,
+            )
+
+        # if request.form.get("destination"):
+        #     new_destination = request.form.get("destination")
+        #     search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(new_destination)
+        #     location_info = requests.get(search_string)
+        #     location_info = json.loads(location_info.text)[0]
+        #     lat = float(location_info["lat"])
+        #     long = float(location_info["lon"])
+        #     new_destination = {"location": new_destination, "lat": lat, "long": long}
+        #     destinations.append(new_destination)
+
+        #     current_lat = current["lat"]
+        #     current_long = current["long"]
+
+        #     for destination in destinations:
+        #         lat = destination["lat"]
+        #         long = destination["long"]
+        #         distance = round(haversine(current_long, current_lat, long, lat))
+        #         distance = {"distance": distance}
+        #         destination.update(distance)
+
+        #     return render_template(
+        #         "index.html",
+        #         current=current["location"],
+        #         destinations=destinations,
+        #         locations=locations,
+        #     )
 
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
+        current_location = locations[1]
+        current = current_location["location"]
+        current_lat = current_location["lat"]
+        current_long = current_location["long"]
+
+        for destination in destinations:
+            lat = destination["lat"]
+            long = destination["long"]
+            distance = round(haversine(current_long, current_lat, long, lat))
+            distance = {"distance": distance}
+            destination.update(distance)
+
         return render_template(
             "index.html",
-            locations=locations,
+            current=current,
             destinations=destinations,
+            locations=locations,
         )
 
 
