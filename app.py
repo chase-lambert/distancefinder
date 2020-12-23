@@ -40,10 +40,10 @@ def index():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         
-        location = request.form.get("location")
-        for d in destinations:
-            if d['location'] == location:
-                current_destination = d
+        current_destination = request.form.get("location")
+        # for d in destinations:
+        #     if d['location'] == location:
+        #         current_destination = d
 
         current_lat = current_destination["lat"]
         current_long = current_destination["long"]
