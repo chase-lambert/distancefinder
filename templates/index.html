@@ -6,7 +6,16 @@
 
 {% block main %}
 
-     <p> {{ ip }} </p>
+     <form action="/index" method="post">
+        <div class="form-group">
+            <select autocomplete="off" autofocus class="form-control" name="location" placeholder="Current Location" type="text">
+                {% for destination in destinations %}
+                <option value="{{destination["location"]}}">{{destination["location"]}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
 
       <table class="table table-striped">
         <thead>
