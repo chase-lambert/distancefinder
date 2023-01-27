@@ -6,9 +6,9 @@ My parents were going on a big road trip across America in their new RV. My dad 
 Here is how it turned out: 
 
 <p float="left">
-  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs.jpg" width="200" height="200" >
-  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs-2.jpg" width="200" height="200" >
-  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs-3.jpg" width="200" height="200" >
+  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs.jpg" width="225" height="225" >
+  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs-2.jpg" width="225" height="225" >
+  <img src="https://github.com/Chase-Lambert/distancefinder/blob/main/signs-3.jpg" width="225" height="225" >
 </p>
 
 Each location sign had a little blank space where we sprayed this cool chalkboard spray paint that allows us to write the various distances with chalk at each new location.
