@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Distance Finder
+{% endblock %}
+
+{% block main %}
+     <h2>Current location: {{ current }}</h2>
+     <p></p>
+     <p>Change current location:</p>
+     <form action="/" method="post">
+        <div class="form-group">
+            <select autocomplete="off" autofocus class="form-control" name="location" placeholder="Current Location" type="text">
+                {% for location in locations %}
+                <option value="{{location["location"]}}">{{location["location"]}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="new_location" placeholder="Or enter new location" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
+
+      <p></p>
+
+      <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Location</th>
+                <th>Distance from Current Location</th>
+            </tr>
+        </thead>
+        <tbody>
+                {% for destination in destinations %}
+                <tr>
+                    <td> {{ destination["location"] }}</td>
+                    <td> {{ destination["distance"] }} miles</td>
+                </tr>
+                {% endfor %}
+
+        </tbody>
+    </table>
+
+<!--    
+        <form action="/" method="post">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="destination" placeholder="Add new location" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Add</button>
+        </form>  
+-->
+{% endblock %}
