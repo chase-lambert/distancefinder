@@ -71,8 +71,18 @@ def index():
 
         if request.form.get("new_location"):
             current = request.form.get("new_location")
-            search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
-            location_info = requests.get(search_string)
+            # search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
+            # location_info = requests.get(search_string)
+            search_string = "https://nominatim.openstreetmap.org/search"
+            params = {
+                'q': current,
+                'format': 'json',
+                'limit': 1
+            }
+            headers = {
+                'User-Agent': 'Distance Finder'
+            }
+            location_info = requests.get(search_string, params=params, headers=headers)
 
             print("Response content: ", location_info.text)
 
