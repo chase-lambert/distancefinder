@@ -136,7 +136,7 @@ def index():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        current_location = locations[1]
+        current_location = locations[2]
         current = current_location["location"]
         current_lat = current_location["lat"]
         current_long = current_location["long"]
