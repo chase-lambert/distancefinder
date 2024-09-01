@@ -73,7 +73,11 @@ def index():
             current = request.form.get("new_location")
             search_string = "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1".format(current)
             location_info = requests.get(search_string)
+
+            print("Response content: ", location_info.text)
+
             location_info = json.loads(location_info.text)[0]
+
 
             current_lat = float(location_info["lat"])
             current_long = float(location_info["lon"])
