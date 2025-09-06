@@ -1,7 +1,6 @@
 import json
 import os
 import requests
-import socket
 import time
 from datetime import datetime, timedelta
 
@@ -24,37 +23,6 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 geocoding_cache = {}
 last_request_time = 0
 
-def test_connectivity():
-    """Test different aspects of network connectivity"""
-    
-    # Test basic internet connectivity
-    try:
-        response = requests.get('https://httpbin.org/get', timeout=10)
-        print(f"Basic internet test: SUCCESS - Status {response.status_code}")
-    except Exception as e:
-        print(f"Basic internet test: FAILED - {e}")
-    
-    # Test DNS resolution
-    try:
-        ip = socket.gethostbyname('nominatim.openstreetmap.org')
-        print(f"DNS resolution test: SUCCESS - {ip}")
-    except Exception as e:
-        print(f"DNS resolution test: FAILED - {e}")
-    
-    # Test direct connection to Nominatim
-    try:
-        response = requests.get('https://nominatim.openstreetmap.org', timeout=10)
-        print(f"Nominatim connection test: SUCCESS - Status {response.status_code}")
-    except Exception as e:
-        print(f"Nominatim connection test: FAILED - {e}")
-
-# Geocoding service configuration (allows switching services)
-GEOCODING_CONFIG = {
-    'service': 'nominatim',  # Can be changed to switch services
-    'nominatim_url': 'https://nominatim.openstreetmap.org/search',
-    'backup_service': None  # Could be configured as fallback
-}
-
 def get_rate_limited_timestamp():
     """Ensure we don't exceed 1 request per second"""
     global last_request_time
@@ -70,7 +38,7 @@ def get_rate_limited_timestamp():
 
 def geocode_location(location_name):
     """
-    Geocode a location with caching and rate limiting
+    Geocode a location using geocode.xyz instead of Nominatim
     Returns (lat, lon) tuple or None if not found
     """
     # Check cache first
@@ -81,40 +49,36 @@ def geocode_location(location_name):
         if datetime.now() - cached_result['timestamp'] < timedelta(hours=24):
             return cached_result['coordinates']
     
-    # Rate limit the request
+    # Rate limit the request (geocode.xyz also has rate limits)
     get_rate_limited_timestamp()
     
     try:
-        if GEOCODING_CONFIG['service'] == 'nominatim':
-            params = {
-                'q': location_name,
-                'format': 'json',
-                'limit': 1,
-            }
-            headers = {
-                'User-Agent': 'Distance Finder App v1.0 (your-email@example.com)'
+        # Use geocode.xyz instead of Nominatim
+        url = f"https://geocode.xyz/{location_name}"
+        params = {
+            'json': '1'
+        }
+        headers = {
+            'User-Agent': 'Distance Finder App v1.0'
+        }
+        
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # geocode.xyz returns latitude as 'latt' and longitude as 'longt'
+        if 'latt' in data and 'longt' in data and data['latt'] != 'No data' and data['longt'] != 'No data':
+            lat = float(data['latt'])
+            lon = float(data['longt'])
+            
+            # Cache the result
+            geocoding_cache[cache_key] = {
+                'coordinates': (lat, lon),
+                'timestamp': datetime.now()
             }
             
-            response = requests.get(
-                GEOCODING_CONFIG['nominatim_url'], 
-                params=params, 
-                headers=headers, 
-                timeout=10
-            )
-            response.raise_for_status()
-            
-            data = response.json()
-            if data:
-                lat = float(data[0]['lat'])
-                lon = float(data[0]['lon'])
-                
-                # Cache the result
-                geocoding_cache[cache_key] = {
-                    'coordinates': (lat, lon),
-                    'timestamp': datetime.now()
-                }
-                
-                return (lat, lon)
+            return (lat, lon)
         
     except Exception as e:
         print(f"Geocoding failed for {location_name}: {e}")
@@ -137,10 +101,6 @@ Session(app)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    print("=== CONNECTIVITY DEBUG TEST ===")
-    test_connectivity()
-    print("=== END DEBUG TEST ===")
-
     destinations = [
         {'location': 'King, NC', 'lat': 36.30450135436856, 'long': -80.3242199}, 
         {'location': 'Dudley, NC', 'lat': 35.2673857, 'long': -78.0374891}, 
