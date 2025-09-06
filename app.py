@@ -38,41 +38,41 @@ def get_rate_limited_timestamp():
 
 def geocode_location(location_name):
     """
-    Geocode a location using geocode.xyz instead of Nominatim
+    Geocode a location using PositionStack API (free tier: 1,000 requests/month)
     Returns (lat, lon) tuple or None if not found
     """
-    # Check cache first
     cache_key = location_name.lower().strip()
     if cache_key in geocoding_cache:
         cached_result = geocoding_cache[cache_key]
-        # Cache results for 24 hours
         if datetime.now() - cached_result['timestamp'] < timedelta(hours=24):
             return cached_result['coordinates']
     
-    # Rate limit the request (geocode.xyz also has rate limits)
     get_rate_limited_timestamp()
     
     try:
-        # Use geocode.xyz instead of Nominatim
-        url = f"https://geocode.xyz/{location_name}"
+        api_key = os.getenv('POSITIONSTACK_API_KEY', '')
+        
+        if not api_key:
+            print("No PositionStack API key found - falling back to simple lookup")
+            return try_fallback_geocoding(location_name)
+        
+        url = "http://api.positionstack.com/v1/forward"  # Note: http for free tier
         params = {
-            'json': '1'
-        }
-        headers = {
-            'User-Agent': 'Distance Finder App v1.0'
+            'access_key': api_key,
+            'query': location_name,
+            'limit': 1
         }
         
-        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         
         data = response.json()
         
-        # geocode.xyz returns latitude as 'latt' and longitude as 'longt'
-        if 'latt' in data and 'longt' in data and data['latt'] != 'No data' and data['longt'] != 'No data':
-            lat = float(data['latt'])
-            lon = float(data['longt'])
+        if 'data' in data and len(data['data']) > 0:
+            result = data['data'][0]
+            lat = float(result['latitude'])
+            lon = float(result['longitude'])
             
-            # Cache the result
             geocoding_cache[cache_key] = {
                 'coordinates': (lat, lon),
                 'timestamp': datetime.now()
@@ -81,8 +81,44 @@ def geocode_location(location_name):
             return (lat, lon)
         
     except Exception as e:
-        print(f"Geocoding failed for {location_name}: {e}")
+        print(f"PositionStack geocoding failed for {location_name}: {e}")
+        return try_fallback_geocoding(location_name)
         
+    return None
+
+def try_fallback_geocoding(location_name):
+    """
+    Fallback geocoding using a simpler service that doesn't require API keys
+    This is for when PositionStack fails or no API key is available
+    """
+    try:
+        url = f"https://api.ipgeolocation.io/geocoding"
+        params = {
+            'apiKey': 'free',
+            'q': location_name
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'latitude' in data and 'longitude' in data:
+                lat = float(data['latitude'])
+                lon = float(data['longitude'])
+                
+                # Cache the result
+                cache_key = location_name.lower().strip()
+                geocoding_cache[cache_key] = {
+                    'coordinates': (lat, lon),
+                    'timestamp': datetime.now()
+                }
+                
+                print(f"Used fallback geocoding for {location_name}")
+                return (lat, lon)
+        
+    except Exception as e:
+        print(f"Fallback geocoding also failed for {location_name}: {e}")
+    
     return None
 
 # Ensure responses aren't cached
